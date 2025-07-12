@@ -1,5 +1,6 @@
 # Text Mine Congress
 
+<<<<<<< HEAD
 ## Run: 
 
 ## `create_decade_subset.R`
@@ -19,3 +20,6 @@
 ## `tf_idf.R`
 - ENTER
 - ENTER
+=======
+1. First we create the dataset: https://github.com/stephbuon/congressional-data-scraper 
+>>>>>>> 9da9a7c7401064e151b6bd50b09998deb68a7c27
