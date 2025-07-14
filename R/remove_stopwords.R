@@ -1,4 +1,5 @@
 # Remove Stop Words
+stopwords_set <- unique(tolower(stop_words$word))
 
 remove_stopwords <- function(dataframe, stopwords_set) {
   dt <- as.data.table(dataframe)
@@ -8,4 +9,3 @@ remove_stopwords <- function(dataframe, stopwords_set) {
   dt <- dt[!str_detect(token, "^[[:punct:]]+$")]
   return(dt) }
  
-stopwords_set <- unique(tolower(stop_words$word))
