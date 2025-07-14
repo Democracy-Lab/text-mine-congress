@@ -1,5 +1,7 @@
 library(tidyverse)
 library(data.table)
+library(arrow)
+library(here)
 
 create_decades_col <- function(data) {
   data %>%
@@ -18,14 +20,4 @@ split_by_decade <- function(data, output_dir) {
       filter(decade == d) 
     
     decade_name <- paste0("us_congress_", d)
-    save(decade_subset, file = file.path(output_dir, paste0(decade_name, ".RData"))) } }
-
-
-
-dir_name <- "Data"
-dir.create(dir_name)
-us_congress_data <- fread("congress_data_daily_by_speaker_with_metadata.csv")
-
-us_congress_data_w_decade <- create_decades_col(us_congress_data)
-split_by_decade(us_congress_data_w_decade, dir_name)
-
+    write_parquet(decade_subset, sink = file.path(output_dir, paste0(decade_name, ".parquet"))) } }
