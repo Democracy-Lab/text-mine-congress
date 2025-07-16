@@ -35,9 +35,9 @@ spacy_parse_unix <- function(df, chunk_id, current_decade, num_chunks) {
   
   parsed <- spacy_parse(input_text,
                         pos = TRUE,
-                        dependency = FALSE,
-                        lemma = FALSE,
-                        tag = FALSE, 
+                        dependency = TRUE,
+                        lemma = TRUE,
+                        tag = TRUE, 
                         entity = FALSE)
   
   write_parquet(original_df, 
@@ -65,8 +65,8 @@ spacy_parse_windows <- function(df, chunk_id, current_decade, num_chunks) {
   parsed <- spacy_parse(input_text,
                         pos = TRUE,
                         dependency = TRUE,
-                        lemma = FALSE,
-                        tag = FALSE, 
+                        lemma = TRUE,
+                        tag = TRUE, 
                         entity = FALSE)
   
   write_parquet(original_df, 
