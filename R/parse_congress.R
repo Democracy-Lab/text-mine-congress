@@ -95,7 +95,12 @@ process <- function(data, d, num_chunks, os) {
                 ~ spacy_parse_windows(.x, .y, d, num_chunks), 
                 .options = furrr_options(seed = TRUE))  } # Seed for reproducability. Is it needed? 
   
-
+  if(os=="Linux") {
+    future_map2(chunks, seq_along(chunks),
+                ~ spacy_parse_unix(.x, .y, d, num_chunks), 
+                .options = furrr_options(seed = TRUE))  } # Seed for reproducability. Is it needed? 
+  
+  
   timing <- toc(log = TRUE, quiet = TRUE)
   elapsed_sec <- timing$toc - timing$tic
   elapsed_min <- elapsed_sec / 60

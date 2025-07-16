@@ -38,6 +38,13 @@ if(operating_system == "Windows") {
   spacy_initialize(model = "en_core_web_sm", refresh_settings = TRUE)
   plan(multisession, workers = 22) }
 
+if(operating_system == "Linux") {
+  spacy_initialize(model = "en_core_web_sm", refresh_settings = TRUE)
+  plan(multicore, workers = 22) } 
+
+
+
+
 file_list <- list.files(path = "data", pattern = "\\.parquet$", full.names = TRUE)
 
 for (f in file_list) {
