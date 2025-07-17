@@ -43,8 +43,6 @@ if(operating_system == "Linux") {
   plan(multicore, workers = 22) } 
 
 
-
-
 file_list <- list.files(path = "data", pattern = "\\.parquet$", full.names = TRUE)
 
 for (f in file_list) {
