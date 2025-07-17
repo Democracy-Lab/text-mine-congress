@@ -14,6 +14,11 @@ if (!dir.exists(chunks_dir)) {
   message("Created chunks directory") } else {
     message("Chunks directory already exists") }
 
+gender_dir <- file.path("data", "gender_analysis")
+if (!dir.exists(gender_dir)) {
+  dir.create(gender_dir) 
+  message("Created gender analysis directory") } else {
+    message("Gender analysis directory already exists") }
 
 source("R/create_decade_subset.R")
 
