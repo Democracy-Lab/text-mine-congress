@@ -68,5 +68,6 @@ bind_chunks <- function(chunk_type) {
     output_file <- file.path("data", paste0(output_prefix, d, ".parquet"))
     write_parquet(combined_df, output_file)
     
-    toc() } }
+    toc() } 
+  gc() }
 

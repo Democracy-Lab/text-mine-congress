@@ -1,6 +1,18 @@
 library(here)
-debug = TRUE
-delete_chunks = TRUE
+library(tidyverse)
+library(arrow)
+library(data.table)
+library(furrr)
+library(future)
+library(tictoc)
+library(spacyr)
+library(reticulate)
+
+
+debug <- TRUE
+delete_chunks <- TRUE
+decades <- c(1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020)
+
 
 data_dir <- here("data")
 if (!dir.exists(data_dir)) {
@@ -19,6 +31,13 @@ if (!dir.exists(gender_dir)) {
   dir.create(gender_dir) 
   message("Created gender analysis directory") } else {
     message("Gender analysis directory already exists") }
+
+categories_dir <- file.path("data", "gender_analysis", "categories")
+if (!dir.exists(categories_dir)) {
+  dir.create(categories_dir) 
+  message("Created categories directory in gender analysis directory") } else {
+    message("Categories directory inside gender analysis directory already exists") }
+
 
 source("R/create_decade_subset.R")
 
@@ -59,32 +78,47 @@ for (f in file_list) {
 
 source("R/bind_data.R")
 
-decades <- c(1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020)
 bind_chunks(chunk_type = "spacy_parse")
 bind_chunks(chunk_type = "default")
 
 if(delete_chunks == TRUE) {
   delete_chunks() }
 
+source("R/subset_by_gender.R")
+
+for(d in decades) {
+  subset_by_gender(d, data_dir) }
 
 source("R/remove_stopwords.R")
 
 for(d in decades) {
-  data_dir <- file.path("data", "gender_analysis")
-  
   men_file_name <- paste0("us_congress_men_", d, ".parquet")
   women_file_name <- paste0("us_congress_women_", d, ".parquet")
   
-  parsed_decade_subset_men <- read_parquet(file.path(data_dir, men_file_name))
-  parsed_decade_subset_women <- read_parquet(file.path(data_dir, women_file_name)) 
+  parsed_decade_subset_men <- read_parquet(file.path(gender_dir, men_file_name))
+  parsed_decade_subset_women <- read_parquet(file.path(gender_dir, women_file_name)) 
   
   out1 <- remove_stopwords(parsed_decade_subset_men, stopwords_set)
   out2 <- remove_stopwords(parsed_decade_subset_women, stopwords_set)
-  
+ 
   all_data <- bind_rows(out1, out2)
   
   write_parquet(all_data, 
-                sink = file.path("data", "gender_analysis", paste0("us_congress_men_and_women_clean_", d, ".parquet"))) }
+                sink = file.path(gender_dir, paste0("us_congress_men_and_women_clean_", d, ".parquet"))) 
+  
+  rm(parsed_decade_subset_men, parsed_decade_subset_women, out1, out2, all_data)
+  gc() }
+
+
+source("R/subset_by_category.R")
+
+for(d in decades) { 
+  f <- read_parquet(file.path(gender_dir, paste0("us_congress_men_and_women_clean_", d, ".parquet")))
+  subset_by_category(f, d, categories_dir) 
+  gc() }
+
+
+
 
 
 

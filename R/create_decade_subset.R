@@ -1,8 +1,3 @@
-library(tidyverse)
-library(data.table)
-library(arrow)
-library(here)
-
 create_decades_col <- function(data) {
   data %>%
     select(-c(granule_id)) %>%

@@ -1,11 +1,3 @@
-library(tidyverse)
-library(furrr)
-library(future)
-library(tictoc)
-library(spacyr)
-library(reticulate)
-library(arrow)
-
 log_message <- function(...) {
   log_dir <- "logs"
   log_file <- file.path(log_dir, "logfile.txt")
@@ -20,9 +12,6 @@ log_message <- function(...) {
 
 
 spacy_parse_unix <- function(df, chunk_id, current_decade, num_chunks) {
-  
-  message(paste0("Employing spaCy Parse"))
-  spacy_initialize(model = "en_core_web_sm")
   
   message(paste0("Worker starting for chunk ", chunk_id))
   
@@ -104,5 +93,6 @@ process <- function(data, d, num_chunks, os) {
   timing <- toc(log = TRUE, quiet = TRUE)
   elapsed_sec <- timing$toc - timing$tic
   elapsed_min <- elapsed_sec / 60
-  print(paste("Elapsed time:", round(elapsed_min, 2), "minutes")) }
+  print(paste("Elapsed time:", round(elapsed_min, 2), "minutes")) 
+  gc() }
 
