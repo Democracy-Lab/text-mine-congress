@@ -114,7 +114,7 @@ source("R/subset_by_category.R")
 
 for(d in decades) { 
   f <- read_parquet(file.path(gender_dir, paste0("us_congress_men_and_women_clean_", d, ".parquet")))
-  subset_by_category(f, d, categories_dir) 
+  subset_by_category(f, d, categories_dir)
   gc() }
 
 

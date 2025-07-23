@@ -1,3 +1,4 @@
+
 library(tidyverse)
 library(data.table)
 library(arrow)
@@ -9,7 +10,7 @@ viz_dir <- here("visualizations")
 if (!dir.exists(viz_dir)) {
   dir.create(viz_dir) 
   message("Created visualizations directory")  } else {
-  message("Visualizations directory already exists")}
+    message("Visualizations directory already exists")}
 
 corpus <- "U.S. Congressional Records"
 
@@ -33,9 +34,6 @@ ling_unit <- "NOUN" # or "Words"
 for (cat in cat_list) {
   message(paste("Processing topic:", cat))
   
-  plot_title <- paste0(corpus, ": ", str_replace_all(cat, "_", " "), " for ", target_decade)
-  png_title <- str_replace_all(plot_title, "[[:punct:]\\s]+", "_")
-  
   all_decades_scores <- list()
   
   for (target_decade in decades) {
@@ -49,8 +47,8 @@ for (cat in cat_list) {
       counts <- data %>%
         filter(pos == ling_unit) %>%
         count(decade, gender, token, topic, pos, sort = TRUE) } else {
-      counts <- data %>%
-        count(decade, gender, token, topic, sort = TRUE) }
+          counts <- data %>%
+            count(decade, gender, token, topic, sort = TRUE) }
     
     log_likelihood <- counts %>%
       bind_log_odds(set = gender, feature = token, n = n)
@@ -66,34 +64,24 @@ for (cat in cat_list) {
     gc() }
   
   topic_df <- bind_rows(all_decades_scores) %>%
-    mutate(topic_label = str_replace_all(topic, "_", " "),
-           gender = factor(gender, levels = c("F", "M")),
-           decade = factor(decade, levels = sort(unique(decade))))
+    mutate(topic_label = str_replace_all(topic, "_", " "))
   
   p <- ggplot(topic_df,
               aes(x = reorder_within(token, log_odds_weighted, interaction(decade, gender)),
                   y = log_odds_weighted,
                   fill = gender)) +
     geom_col(show.legend = FALSE) +
-    facet_grid(decade ~ gender, scales = "free_y") +
+    facet_wrap(decade ~ gender, scales = "free_y") +
     scale_x_reordered() +
     coord_flip() +
-    labs(title = paste0("Top ", str_to_title(ling_unit), "s by Gender Measured with Log Likelihood"),
-         subtitle = plot_title,
+    labs(title = paste0("Top ", str_to_title(ling_unit), "s by Gender and Decade"),
+         subtitle = paste0(str_replace_all(cat, "_", " "), " - ", corpus),
          x = "Token",
          y = "Weighted Log Odds") +
     theme(strip.text = element_text(size = 10))
   
-  ggsave(filename = file.path(viz_dir, paste0(png_title, ".png")),
+  ggsave(filename = file.path(viz_dir, paste0("Log_Likelihood_", cat, ".png")),
          plot = p,
          width = 24,
-         height = 30,
-         dpi = 800) }
-
-
-
-
-
-
-
-
+         height = 18,
+         dpi = 300) }
