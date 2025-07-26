@@ -21,12 +21,12 @@ Before running any scripts in this repository, you must collect the daily Congre
 - Input: The combined .parquet files by decade (original + POS-parsed).
 - Output: Separate decade subsets as .parquet files for each gender (men and women).
 
-#### (Optional) `subset_by_gender.R`
+#### `subset_by_gender.R`
 - Input: The bound chunks as `.parquet` files.
-- Output: Decade subsets with combined genders
+- Output: Decade subsets for each gender
 
 #### `remove_stopwords.R`
-- Input: The decade `.parquet` files with combined genders
+- Input: The decade `.parquet` files for each gender
 - Output: A cleaned version of the decade `.parquet` files without stop words. 
 
 #### `subset_by_category.R`
