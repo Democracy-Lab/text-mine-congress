@@ -14,12 +14,7 @@ keyword_at_least_n_per_doc <- function(collapsed_docs_df, pattern, n = 3) {
       })
     ) %>%
     filter(max_word_count >= n) %>%
-    mutate(
-      matched_words = map_chr(word_table, function(tbl) {
-        paste0("(", names(tbl), ", ", as.integer(tbl), ")", collapse = " ")
-      }),
-      keyword_total_count = map_int(word_table, function(tbl) sum(tbl))
-    )
+    select(doc_id, global_token_id, token)  # CHANGED: remove sentence and keyword columns to avoid duplication later
 }
 
 
@@ -38,7 +33,7 @@ subset_by_category <- function(f, decade, categories_dir) {
     summarise(
       global_token_id = list(global_token_id),
       token = list(token),
-      sentence = str_c(unlist(token), collapse = " "),
+      sentence = str_c(unlist(token), collapse = " "),  # sentence still used for matching
       .groups = "drop"
     )
   
@@ -68,28 +63,37 @@ subset_by_category <- function(f, decade, categories_dir) {
       next
     }
     
-    # Write debugger CSV (includes total count column)
+    # CHANGED: Regenerate sentence text for debugging CSV only (not for final parquet)
+    debug_summary <- matched_docs %>%
+      mutate(sentence = map_chr(token, ~ str_c(.x, collapse = " "))) %>%
+      mutate(token_count = map_int(token, length)) %>%
+      select(doc_id, token_count, sentence)
+
+    # CHANGED: Write sentence-containing CSV for debugging, not for full token output
     write_csv(
-      matched_docs %>% select(doc_id, keyword_total_count, matched_words, sentence),
+      debug_summary,
       file.path(categories_dir, paste0("matched_docs_", category, "_", decade, ".csv"))
     )
     
-    # Prepare parquet without keyword count
+    # CHANGED: Unnest and deduplicate before join to avoid repeated tokens
     matches <- matched_docs %>%
-      select(doc_id, global_token_id, token) %>%
       unnest(c(global_token_id, token)) %>%
-      filter(token != " ")
+      filter(token != " ") %>%
+      distinct(global_token_id, token, .keep_all = TRUE)  # CHANGED: ensure unique token rows
     
     result <- matches %>%
       left_join(metadata, by = "global_token_id")
     
     category_file_name <- str_replace_all(category, "[,\\s]+", "_")
     
-    write_parquet(result,
-                  file.path(categories_dir, paste0(category_file_name, "_", decade, "_congress_filtered_by_gender.parquet")))
+    write_parquet(
+      result,
+      file.path(categories_dir, paste0(category_file_name, "_", decade, "_congress_filtered_by_gender.parquet"))
+    )
     
     rm(matches, result)
     gc()
   }
 }
+
 
