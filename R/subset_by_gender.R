@@ -19,14 +19,14 @@ subset_by_gender <- function(d, data_dir) {
     
   men <- joined_subset %>%
     filter(gender == "M") %>%
-    select(doc_id, sentence_id, token_id, token, pos, gender, state, party, title)
+    select(source_file, doc_id, sentence_id, token_id, token, pos, gender, state, party, title)
     
   write_parquet(men, 
                 sink = file.path("data", "gender_analysis", paste0("us_congress_men_", d, ".parquet")))
     
   women <- joined_subset %>%
     filter(gender == "F") %>%
-    select(doc_id, sentence_id, token_id, token, pos, gender, state, party, title) 
+    select(source_file, doc_id, sentence_id, token_id, token, pos, gender, state, party, title) 
     
   write_parquet(women, 
                 sink = file.path("data", "gender_analysis", paste0("us_congress_women_", d, ".parquet"))) 
