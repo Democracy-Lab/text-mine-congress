@@ -9,7 +9,7 @@ subset_by_gender <- function(d, data_dir) {
     mutate(source_file = str_replace(source_file, "spacy_parsed_", ""))
     
   record_decade_subset <- read_parquet(file.path(data_dir, record_file_name)) %>%
-    select(source_file, doc_id, decade, gender, state, party, title)
+    select(source_file, doc_id, decade, gender, date, state, party, title)
     
   joined_subset <- parsed_decade_subset %>%
     left_join(record_decade_subset, by = c("source_file", "doc_id"))
@@ -19,14 +19,14 @@ subset_by_gender <- function(d, data_dir) {
     
   men <- joined_subset %>%
     filter(gender == "M") %>%
-    select(source_file, doc_id, sentence_id, token_id, token, pos, gender, state, party, title)
+    select(source_file, doc_id, sentence_id, token_id, token, pos, gender, state, party, date, title)
     
   write_parquet(men, 
                 sink = file.path("data", "gender_analysis", paste0("us_congress_men_", d, ".parquet")))
     
   women <- joined_subset %>%
     filter(gender == "F") %>%
-    select(source_file, doc_id, sentence_id, token_id, token, pos, gender, state, party, title) 
+    select(source_file, doc_id, sentence_id, token_id, token, pos, gender, state, party, date, title) 
     
   write_parquet(women, 
                 sink = file.path("data", "gender_analysis", paste0("us_congress_women_", d, ".parquet"))) 
