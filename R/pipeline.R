@@ -7,13 +7,12 @@ library(future)
 library(tictoc)
 library(spacyr)
 library(reticulate)
+library(lubridate)
 
 
-debug <- TRUE
-delete_chunks <- TRUE
+debug <- FALSE
+should_delete_chunks <- TRUE
 decades <- c(1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020)
-
-#decades <- c(1970, 1980, 1990, 2000, 2010, 2020)
 
 data_dir <- here("data")
 if (!dir.exists(data_dir)) {
@@ -68,7 +67,7 @@ if(operating_system == "Linux") {
   plan(multicore, workers = 22) } 
 
 
-file_list <- list.files(path = "data", pattern = "\\.parquet$", full.names = TRUE)
+file_list <- list.files(path = "data", pattern = "^us_congress_\\d{4}\\.parquet$", full.names = TRUE)
 
 for (f in file_list) {
   log_message(paste0("Loading: ", f))
@@ -82,7 +81,7 @@ source("R/bind_data.R")
 bind_chunks(chunk_type = "spacy_parse")
 bind_chunks(chunk_type = "default")
 
-if(delete_chunks == TRUE) {
+if(should_delete_chunks == TRUE) {
   delete_chunks() }
 
 source("R/subset_by_gender.R")
@@ -117,9 +116,4 @@ for(d in decades) {
   f <- read_parquet(file.path(gender_dir, paste0("us_congress_men_and_women_clean_", d, ".parquet")))
   subset_by_category(f, d, categories_dir)
   gc() }
-
-
-
-
-
 
