@@ -2,7 +2,7 @@
 # Configuration
 # ──────────────────────────────────────────────────────────────────────────────
 CATEGORY_SCORE_THRESHOLD <- as.numeric(Sys.getenv("CATEGORY_SCORE_THRESHOLD", "0.03"))
-PERCENTILE_CUTOFF        <- as.numeric(Sys.getenv("PERCENTILE_CUTOFF", "0.90"))
+PCT_OF_MAX               <- as.numeric(Sys.getenv("PCT_OF_MAX", "0.85"))
 
 VOCAB_URL <- Sys.getenv(
   "CONGRESS_VOCAB_URL",
@@ -30,7 +30,7 @@ escape_kw <- function(x) {
   paste0("\\b", rx, "(e?s)?\\b")
 }
 
-# Percentile helper
+# Percentile helper (kept for compatibility, though not used by the new gate)
 pct_value <- function(x, p) {
   if (length(x) == 0) return(Inf)
   as.numeric(stats::quantile(x, probs = p, na.rm = TRUE, names = FALSE, type = 7))
@@ -71,10 +71,10 @@ subset_by_category <- function(f, decade, categories_dir) {
 
   message(sprintf("== Categorizing decade %s at DEBATE level (date + title + sequential runs) ==", decade))
 
-  # Output dirs (tagged by thr/pct)
-  tag <- sprintf("thr%s_pct%s",
+  # Output dirs (tagged by thr/pom)
+  tag <- sprintf("thr%s_pom%s",
                  format(CATEGORY_SCORE_THRESHOLD, nsmall = 3, trim = TRUE),
-                 format(PERCENTILE_CUTOFF,        nsmall = 2, trim = TRUE))
+                 format(PCT_OF_MAX,               nsmall = 2, trim = TRUE))
 
   score_dir           <- file.path(categories_dir, sprintf("tfidf_norm_scores_%s", tag))
   assign_dir          <- file.path(categories_dir, sprintf("tfidf_norm_assignments_%s", tag))
@@ -152,6 +152,15 @@ subset_by_category <- function(f, decade, categories_dir) {
       text        = str_c(token, collapse = " "),
       .groups     = "drop"
     )
+
+  # ── Drop debates with <10 sentences (rough sentence split on punctuation), and log it
+  debate_tokens <- debate_tokens %>%
+    mutate(sentence_count = str_count(text, "[.!?]"))
+  dropped_n <- sum(debate_tokens$sentence_count < 10, na.rm = TRUE)
+  message(sprintf("Dropping %d debates with <10 sentences out of %d (%.1f%%).",
+                  dropped_n, nrow(debate_tokens),
+                  if (nrow(debate_tokens) > 0) 100 * dropped_n / nrow(debate_tokens) else 0))
+  debate_tokens <- debate_tokens %>% filter(sentence_count >= 10)
 
   # We don't need the token-level frame anymore; free it.
   rm(f, speech_tbl); gc()
@@ -246,23 +255,24 @@ subset_by_category <- function(f, decade, categories_dir) {
     score_dir, sprintf("category_scores_%s_unit-debate_tfidf_norm_1k.csv", decade)
   ))
 
-  # Multi-label assignment with absolute threshold and optional percentile gate
+  # Multi-label assignment with absolute floor + fraction-of-top gate
   message("Assigning categories (multi-label) ...")
   assignments <- cat_scores %>%
     group_by(debate_id) %>%
     mutate(
-      pct_gate = if (PERCENTILE_CUTOFF > 0) pct_value(category_score, PERCENTILE_CUTOFF) else -Inf,
-      include  = category_score >= max(CATEGORY_SCORE_THRESHOLD, pct_gate)
+      max_score = max(category_score, na.rm = TRUE),
+      include   = (category_score >= CATEGORY_SCORE_THRESHOLD) &
+                  (category_score >= PCT_OF_MAX * max_score)
     ) %>%
     ungroup() %>%
     filter(include) %>%
     arrange(debate_id, desc(category_score))
 
   write_parquet(assignments, sink = file.path(
-    assign_dir, sprintf("assignments_%s_unit-debate_thr%.3f_pct%.2f.parquet", decade, CATEGORY_SCORE_THRESHOLD, PERCENTILE_CUTOFF)
+    assign_dir, sprintf("assignments_%s_unit-debate_thr%.3f_pom%.2f.parquet", decade, CATEGORY_SCORE_THRESHOLD, PCT_OF_MAX)
   ))
   readr::write_csv(assignments, file.path(
-    assign_dir, sprintf("assignments_%s_unit-debate_thr%.3f_pct%.2f.csv", decade, CATEGORY_SCORE_THRESHOLD, PERCENTILE_CUTOFF)
+    assign_dir, sprintf("assignments_%s_unit-debate_thr%.3f_pom%.2f.csv", decade, CATEGORY_SCORE_THRESHOLD, PCT_OF_MAX)
   ))
 
   # Optional: write CLEANED token subsets per category (debate-level)
