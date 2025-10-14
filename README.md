@@ -1,18 +1,30 @@
 # Text Mine Congress
 
-Run commands: 
+## Collect the United States Congressional Records
+Before running any scripts in this repository, you must collect the daily Congressional Record data:
+- Required Repository: [uscongress-data](https://github.com/stephbuon/uscongress-data).
+- Follow the instructions in that repository to generate: `congress_data_daily_by_speaker_with_metadata.csv`.
+
+
+## Vision-LLM Text Transcription
+
+Install ollama:
+
+```
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Donwload Meta's Llama 3 11b vision model: 
+
 ```
 ollama pull llama3.2-vision
+```
 
+```
 ollama create llama3.2-vision-ocr -f ~/Repos/text-mine-congress/ocr/ocr.Modelfile
 
 ollama run llama3.2-vision-ocr "/home/stephbuongiorno/Desktop/image_a.jpg" "You are a high quality OCR tool. Provide me with a word-for-word transcription of this text. Do not repeat phrases and stop at the final line."
 ```
-
-## Step 1: Collect the United States Congressional Records
-Before running any scripts in this repository, you must collect the daily Congressional Record data:
-- Required Repository: [uscongress-data](https://github.com/stephbuon/uscongress-data).
-- Follow the instructions in that repository to generate: `congress_data_daily_by_speaker_with_metadata.csv`.
 
 ## Step 2: Process the Data using `pipeline.R`
 
