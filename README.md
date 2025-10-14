@@ -20,10 +20,15 @@ Donwload Meta's Llama 3 11b vision model:
 ollama pull llama3.2-vision
 ```
 
+Create an instance of the model wih custom parameters and a system prompt:  
 ```
 ollama create llama3.2-vision-ocr -f ~/Repos/text-mine-congress/ocr/ocr.Modelfile
+```
 
-ollama run llama3.2-vision-ocr "/home/stephbuongiorno/Desktop/image_a.jpg" "You are a high quality OCR tool. Provide me with a word-for-word transcription of this text. Do not repeat phrases and stop at the final line."
+Run the model by pointing it to an image file and providing it with a prompt. Note: a system prompt may not be enough to generate wanted results.
+
+```
+ollama run llama3.2-vision-ocr "~/Repos/text-mine-congress/ocr/debug_images/image_a.jpg" "You are a high quality OCR tool. Provide me with a word-for-word transcription of this text. Do not repeat phrases and stop at the final line."
 ```
 
 ## Step 2: Process the Data using `pipeline.R`
