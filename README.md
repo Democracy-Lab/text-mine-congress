@@ -1,5 +1,14 @@
 # Text Mine Congress
 
+Run commands: 
+```
+ollama pull llama3.2-vision
+
+ollama create llama3.2-vision-ocr -f ~/Repos/text-mine-congress/ocr/ocr.Modelfile
+
+ollama run llama3.2-vision-ocr "/home/stephbuongiorno/Desktop/image_a.jpg" "You are a high quality OCR tool. Provide me with a word-for-word transcription of this text. Do not repeat phrases and stop at the final line."
+```
+
 ## Step 1: Collect the United States Congressional Records
 Before running any scripts in this repository, you must collect the daily Congressional Record data:
 - Required Repository: [uscongress-data](https://github.com/stephbuon/uscongress-data).
