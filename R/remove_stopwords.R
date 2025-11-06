@@ -1,19 +1,20 @@
-url <- "https://raw.githubusercontent.com/stephbuon/text-mine-congress/main/analysis/congress_stopwords.csv"
+library(data.table)
+library(stringr)
 
-congress_stopwords <- read_csv(url, col_names = FALSE) %>%
-  pull(1) %>%
-  str_trim() %>%
-  discard(~ .x == "") # remove empty strings
+custom_sw <- read.csv(
+  "/local/scratch/group/guldigroup/climate_change/congress/text-mine-congress/R/congress_stopwords.csv",
+  stringsAsFactors = FALSE
+)
 
-stopwords_set <- unique(tolower(congress_stopwords))
+stopwords_set <- unique(tolower(custom_sw[[1]]))
 
 remove_stopwords <- function(dataframe, stopwords_set) {
-  message("Removing stop words")
-  
   dt <- as.data.table(dataframe)
   dt[, token := str_to_lower(token)]
-  
   dt <- dt[!(token %in% stopwords_set)]
   dt <- dt[!str_detect(token, "^[[:punct:]]+$")]
-  return(dt) }
- 
+  dt <- dt[!str_detect(token, "\\d")]
+  dt <- dt[nchar(token) > 1]
+  dt <- dt[str_trim(token) != ""]
+  return(dt)
+}
