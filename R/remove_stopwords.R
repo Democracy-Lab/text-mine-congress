@@ -1,12 +1,16 @@
 library(data.table)
 library(stringr)
+library(readr)
+library(purrr)
 
-custom_sw <- read.csv(
-  "/local/scratch/group/guldigroup/climate_change/congress/text-mine-congress/R/congress_stopwords.csv",
-  stringsAsFactors = FALSE
-)
+url <- "https://raw.githubusercontent.com/stephbuon/text-mine-congress/main/analysis/congress_stopwords.csv"
 
-stopwords_set <- unique(tolower(custom_sw[[1]]))
+congress_stopwords <- read_csv(url, col_names = FALSE) %>%
+  pull(1) %>%
+  str_trim() %>%
+  discard(~ .x == "")
+
+stopwords_set <- unique(tolower(congress_stopwords))
 
 remove_stopwords <- function(dataframe, stopwords_set) {
   dt <- as.data.table(dataframe)
